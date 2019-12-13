@@ -15,7 +15,8 @@ long partition(int *arr, long low, long high) {
     for (long j = low; j < high; j++) {
         if (arr[j] < pivot) {
             if (i != j) {
-                int temp = arr[i];
+          //swaps the smaller value with the larger one      
+                int temp = arr[i];      
                 arr[i] = arr[j];
                 arr[j] = temp;
             }
@@ -39,14 +40,14 @@ void quicksort_s(int *arr, long low, long high) {
 // Sequential version of your sort
 // If you're implementing the PSRS algorithm, you may ignore this section
 void sort_s(int *arr) {
-    quicksort_s(arr, 0, Num_To_Sort - 1);
+    quicksort_s(arr, 0, Num_To_Sort - 1);            // calls sequential quick sort fucntoin
 }
 
 void quicksort_p(int *arr, long low, long high) {
     if (low < high) {
         long p = partition(arr, low, high);
 #pragma omp task
-        quicksort_p(arr, low, p - 1);
+        quicksort_p(arr, low, p - 1);                  //calls the paralles quci sort funciton
 #pragma omp task
         quicksort_p(arr, p + 1, high);
     }
