@@ -5,17 +5,16 @@
 #include <sys/time.h>
 #include <memory.h>
 
-static const long Num_To_Sort = 10000000;
+static const long Num_To_Sort = 1000000; // testing with smaller number as this was requiring more memory than i could afford
 
-// Quicksort implementation based on pseudocode from
-// https://en.wikipedia.org/wiki/Quicksort#Lomuto_partition_scheme
+
 long partition(int *arr, long low, long high) {
     int pivot = arr[high];
     long i = low;
     for (long j = low; j < high; j++) {
         if (arr[j] < pivot) {
             if (i != j) {
-          //swaps the smaller value with the larger one      
+               
                 int temp = arr[i];      
                 arr[i] = arr[j];
                 arr[j] = temp;
@@ -23,6 +22,7 @@ long partition(int *arr, long low, long high) {
             i++;
         }
     }
+    
     int temp = arr[i];
     arr[i] = arr[high];
     arr[high] = temp;
@@ -37,20 +37,25 @@ void quicksort_s(int *arr, long low, long high) {
     }
 }
 
-// Sequential version of your sort
-// If you're implementing the PSRS algorithm, you may ignore this section
+/*quicksort implementation https://www.openmp.org/wp-content/uploads/sc16-openmp-booth-tasking-ruud.pdf
+usign the tasking modle because some threads will complete their portions of the sort muchs quicker because of the varying portion sizes
+which can be exploited by scheduling new tasks to the threads that have completed their tasks. 
+*/
 void sort_s(int *arr) {
-    quicksort_s(arr, 0, Num_To_Sort - 1);            // calls sequential quick sort fucntoin
+    quicksort_s(arr, 0, Num_To_Sort - 1);           
 }
 
 void quicksort_p(int *arr, long low, long high) {
     if (low < high) {
         long p = partition(arr, low, high);
+#pragma omp task                         //Creates a task with its own copy of quicksort_p 
+        quicksort_p(arr, low, p - 1);     // for the lest side             
 #pragma omp task
-        quicksort_p(arr, low, p - 1);                  //calls the paralles quci sort funciton
-#pragma omp task
-        quicksort_p(arr, p + 1, high);
+        quicksort_p(arr, p + 1, high);  //for the right side 
+        
+        #pragma omp taskwait                             //Wait until all tasks defined in the current task have completed.
     }
+    
 }
 
 // Parallel version of your sort
